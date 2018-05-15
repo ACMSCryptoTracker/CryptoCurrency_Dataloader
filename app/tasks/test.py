@@ -14,20 +14,22 @@ import celery
 #Config.read('./config.ini')
 
 #Get database info from config file
-"""
+
 hostname = 'postgressql-cryptocurrency.cibilq8azida.us-east-2.rds.amazonaws.com'
 username = 'acms_user'
 password = 'acms1234'
 database = 'CryptocurrencyDb'
 port = '5432'
-url = 'https://api.coinmarketcap.com/v1/ticker/?limit=5'
+url = 'https://api.coinmarketcap.com/v1/ticker'
 """
 hostname = 'baasu.db.elephantsql.com'
 username = 'dbuzkqmi'
 password = 'vi24qSFc5TG77k5GPa4aQr3XlnLOBIRf'
 database = 'dbuzkqmi'
 port = '5432'
-url = 'https://api.coinmarketcap.com/v1/ticker/?limit=5'
+url = 'https://api.coinmarketcap.com/v1/ticker'
+"""
+coins=['BTC','ETH','LTC','XRP','BCH']
 @celery.task()
 def insertIntoDatabase():
 	urllib3.disable_warnings()
@@ -38,7 +40,12 @@ def insertIntoDatabase():
 	# Fetch Data From api coinmarket cap
 	response=requests.get(url)
         #Loads data in json format
-	X=json.loads(response.text)
+	Y=json.loads(response.text)
+        X=[]
+        for y in Y:
+	     if(y['symbol'] in coins):
+		  X.append(y)
+ 
 	count=0
         #store json data in the form of dictionary 
 	deleteQuery="delete from currency_current"
