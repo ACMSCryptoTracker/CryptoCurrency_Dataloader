@@ -34,12 +34,18 @@ from flask import request
 
 
 # In[319]:
-hostname = 'baasu.db.elephantsql.com'
+hostname = 'postgressql-cryptocurrency.cibilq8azida.us-east-2.rds.amazonaws.com'
+username = 'acms_user'
+password = 'acms1234'
+database = 'CryptocurrencyDb'
+port = '5432'
+
+"""hostname = 'baasu.db.elephantsql.com'
 username = 'dbuzkqmi'
 password = 'vi24qSFc5TG77k5GPa4aQr3XlnLOBIRf'
 database = 'dbuzkqmi'
 port='5432'
-
+"""
 
 @celery.task()
 def GraphCreationDay():
@@ -47,6 +53,9 @@ def GraphCreationDay():
 	#conn=connection()
 	cur=conn.cursor()    
         for cryptoname in ['BTC','ETH','XRP','LTC']:
+	    cur.execute("Refresh materialized view "+cryptoname+"_min;")
+	    cur.execute("Refresh materialized view "+cryptoname+"_day;")
+	    conn.commit();
             cur.execute("select price_usd_day,last_updated_day from "+cryptoname+"_day ;")
             rows=cur.fetchall()
             #plotting interactive svg
@@ -82,7 +91,10 @@ def GraphCreationMonth():
 	#conn=connection()
 	cur=conn.cursor()
         for cryptoname in ['BTC','ETH','XRP','LTC','BCH'] :
-            
+	    cur.execute("Refresh materialized view "+cryptoname+"_min;")
+	    cur.execute("Refresh materialized view "+cryptoname+"_day;")
+	    cur.execute("Refresh materialized view "+cryptoname+"_month;")
+	    conn.commit();
             cur.execute("select price_usd_month,last_updated_month from "+cryptoname+"_month ;")
             rows=cur.fetchall()
             #plotting interactive svg
@@ -117,10 +129,14 @@ def ComparisonGraphDay():
 	    conn = psycopg2.connect(host=hostname, user=username, password=password, dbname=database,port=port)
 	    #conn=connection()
 	    cur=conn.cursor()
+	    
    	    coins=['BTC','ETH','LTC','XRP']
             chart=pygal.Line(x_label_rotation=45,x_labels_major_every=10,show_minor_x_labels=False)
             for cryptoname in coins:
-                
+
+		cur.execute("Refresh materialized view "+cryptoname+"_min;")
+	    	cur.execute("Refresh materialized view "+cryptoname+"_day;")
+	    	conn.commit();
                 cur.execute("select price_usd_day,last_updated_day from {}".format(cryptoname)+"_day;")
                 rows=cur.fetchmany(49)    
                 cryptod_y_axis_data=[]
@@ -163,6 +179,10 @@ def ComparisonGraphMonth():
    	    coins=['BTC','ETH','LTC','XRP','BCH']
             chart=pygal.Line(x_label_rotation=45,x_labels_major_every=10,show_minor_x_labels=False)
             for cryptoname in coins:
+	   	cur.execute("Refresh materialized view "+cryptoname+"_min;")	  
+	    	cur.execute("Refresh materialized view "+cryptoname+"_day;")
+	    	cur.execute("Refresh materialized view "+cryptoname+"_month;")
+	    	conn.commit();
                 
                 cur.execute("select price_usd_month,last_updated_month from {}".format(cryptoname)+"_month;")
                 rows=cur.fetchall()    
